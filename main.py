@@ -149,7 +149,7 @@ class_names = [
 # -------------------------------------
 def gemini_reason(instrument):
     try:
-        API_KEY = st.secrets["GEMINI_API"]
+        API_KEY = st.secrets["AIzaSyCofn-wO6jqJT40l-SqKpL4fXfEj3Y7TN0"]
     except:
         return "⚠ API key missing. Add it in Streamlit → Settings → Secrets."
 
