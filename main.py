@@ -3,12 +3,6 @@ from ultralytics import YOLO
 from PIL import Image
 import requests
 import base64
-import os
-
-# -------------------------------------
-# Environment Fix for Streamlit Cloud
-# -------------------------------------
-os.environ["YOLO_VERBOSE"] = "false"
 
 # -------------------------------------
 # Page Config
@@ -129,7 +123,7 @@ summary {
 # -------------------------------------
 @st.cache_resource
 def load_model():
-    return YOLO("best.pt")    # Ensure best.pt is inside the repo folder
+    return YOLO("best.pt")
 
 model = load_model()
 
@@ -145,28 +139,27 @@ class_names = [
 ]
 
 # -------------------------------------
-# Gemini Reasoning API (Secrets-Based)
+# Gemini Reasoning API
 # -------------------------------------
 def gemini_reason(instrument):
-    try:
-        API_KEY = st.secrets["AIzaSyCofn-wO6jqJT40l-SqKpL4fXfEj3Y7TN0"]
-    except:
-        return "⚠ API key missing. Add it in Streamlit → Settings → Secrets."
-
+    API_KEY = "AIzaSyCofn-wO6jqJT40l-SqKpL4fXfEj3Y7TN0"
+    
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={API_KEY}"
 
     body = {
         "contents": [
             {
                 "parts": [
-                    {"text": f"Explain what '{instrument}' is, how it works, and its purpose in physics laboratories. Write a simple 3-line paragraph."}
+                    {
+                        "text": f"Explain what '{instrument}' is, how it works, and its purpose in physics laboratories. Write a clean, concise 3-line paragraph."
+                    }
                 ]
             }
         ]
     }
 
+    resp = requests.post(url, json=body)
     try:
-        resp = requests.post(url, json=body)
         return resp.json()["candidates"][0]["content"]["parts"][0]["text"]
     except:
         return "⚠ Gemini reasoning unavailable."
@@ -199,7 +192,7 @@ if uploaded:
     with colA:
         st.markdown("<div class='container-box'>", unsafe_allow_html=True)
         st.markdown("### 📸 Uploaded Image")
-        resized = img.resize((800, 600))
+        resized = img.resize((800,600))  # width, height
         st.image(resized)
         st.markdown("</div>", unsafe_allow_html=True)
 
@@ -226,7 +219,7 @@ if uploaded:
 
                 detected = list(set(detected))
 
-                # Display detected items
+                # Display detected
                 st.markdown("### 🧾 Detected Instruments:")
                 for item in detected:
                     st.markdown(f"<div class='result-item'>🔹 {item}</div>", unsafe_allow_html=True)
@@ -235,12 +228,12 @@ if uploaded:
                 st.markdown("### 🤖 AI Reasoning")
 
                 for item in detected:
-                    description = gemini_reason(item)
+                    exp = gemini_reason(item)
 
                     st.markdown(f"""
                     <details>
                         <summary>🟢 {item}</summary>
-                        <div class='reason-box'>{description}</div>
+                        <div class='reason-box'>{exp}</div>
                     </details>
                     """, unsafe_allow_html=True)
 
@@ -250,3 +243,5 @@ if uploaded:
             st.rerun()
 
         st.markdown("</div>", unsafe_allow_html=True)
+
+#streamlit run main.py
